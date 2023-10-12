@@ -1,0 +1,165 @@
+---
+title: "Lab 3: NMR of Honey"
+author: ''
+date: ''
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+Remember to write your name, and the date at the top of the report!  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#Import all the packages you may need
+library(knitr)
+library(rmarkdown)
+if (!('ChemoSpec' %in% installed.packages()[,"Package"])) install.packages('ChemoSpec')
+if (!('R.utils' %in% installed.packages()[,"Package"])) install.packages('R.utils')
+if (!('robustbase' %in% installed.packages()[,"Package"])) install.packages('robustbase')
+library("robustbase")
+library('ChemoSpec')
+library("ggplot2")
+library("R.utils")
+library(tidyverse)
+```
+
+# PCA Analysis of Honey
+
+This is the second half of the honey experiment - you should have already completed the first part and generated your own .csv file with the signal of your own sample placed in the folder marked 'MySample'. In this part of the analysis, you will be running principal component analysis on the honey database we've developed and use it to tentatively identify your own honey. 
+
+To start with, we will be loading the database (including your own file) using the following code. Make sure this document is in the same folder as your (unzipped) honey database.
+
+```{r}
+
+##Import all NMR spectra in the working directory as one object named spec
+spec <- files2SpectraObject(
+  
+  ##Search through the entire working directory for CSV files
+  recursive = TRUE,
+  
+  ##Specify the sample names of interest by inclusive criteria
+  gr.crit= c("Sample", "Other", "LocalHoney", "KirklandHoney", "ManukaHoney", "MapleSyrup", "NaturoneyHoney", "NoNameHoney", "PresidentsChoiceHoney", "StarbucksHoney", "SugarSyrup"), 
+  
+  ##Automatically apply colours to the sample groups
+  gr.cols = "Col12",  
+  
+  ##Define the units of the x-axis
+  freq.unit = "ppm",  
+  
+  ##Define the units of the y-axis
+  int.unit = "intensity", 
+  
+  ##Description of the dataset
+  descrip = "NMR PCA Analysis",
+  
+  ##Read all files with this extension.
+  fileExt = "\\.(csv|CSV)$",  
+  
+  ##Save this spectra object to an R data file just in case.
+  #out.file = "410NMRdata"  
+)
+```
+
+Let's look at the spectral output and the form of the database we have. We'll first use sumSpectra which gives a detailed description of the dataset as a whole, and then we'll also create a dataframe containing sample names, their indices, and which group they were in. 
+
+```{r}
+sumSpectra(spec)
+specDetails <- tibble(index = 1:length(spec$names), names = spec$names, group = spec$groups)
+specDetails
+```
+
+Next let's plot your specific spectrum. Does it look like the one you made in MNova? 
+
+```{r}
+## Set the graphics option in ChemoSpec to use ggplot2 instead of base R graphics
+options(chemoSpecGraphics = 'ggplot2')
+
+## Plot the spectra in the Spectra object named spec
+spectralPlot <- plotSpectra(spec,
+            
+            ##Which spectra should be plotted? Your spectra is likely number 1 or 63.
+            which = c(1),
+            
+            ##If plotting multiple spectra, offset the vertical axis
+            offset = 50,
+            
+            ##If the spectra is too small, you can scale the y-axis here
+            amplify = 5,
+
+            ##Set the position of the sample labels. This is optional and removing the line removes the labels.
+            lab.pos = 5, 
+ )
+ 
+ ##This line will invert the x-axis to the more familiar NMR axis style
+spectralPlot <- spectralPlot + xlim(10, -1)
+ 
+ ##This line will set the title of your new NMR plot
+spectralPlot <- spectralPlot + ggtitle("NMR Spectra of Sample X")
+
+
+spectralPlot
+```
+
+Let's clean it up a little bit for our statistical analysis now. We're going to normalize and rescale our data to our internal standard first. How does this plot look? Why is the summary different? 
+
+```{r}
+## Remove the acetone and internal standard region of the NMR spectra across all the data
+cleanerSpec <- removeFreq(spec, rem.freq = spec$freq > 2.0 & spec$freq < 2.4)
+
+##Review the spectra set again. Notice how it contains fewer data points than the last time this was run
+sumSpectra(cleanerSpec)
+
+
+## Specify the range over which to normalize the spectra.
+## Notice spec$freq refers to the frequency dataframe within the spec object
+range <- cleanerSpec$freq > -0.5 & cleanerSpec$freq < 0.5
+
+##Create a new Spectra object called norm that contains the normalized data
+norm <- normSpectra(cleanerSpec, method = "PQN", RangeExpress = range)
+
+##You can use plotSpectra again to compare one of the original and one of the normalized spectra. You should see a change in intensity.
+
+normPlot <- plotSpectra(norm, amplify = 1) + xlim(10, -1)
+normPlot
+```
+
+Now that we have a normalized spectrum, we can run PCA on it. This is generally done using built-in functions like this, although we encourage you to learn more about what PCA actually is doing behind the scenes. First thing, let's check the quality of our PCA using a scree plot. Do you understand what is being plotted on the x and y axes and what the two lines represent?
+
+```{r}
+pca <- c_pcaSpectra(norm, choice = "noscale", cent = TRUE)
+
+plotScree(pca, style = "trad") 
+```
+
+
+
+```{r}
+
+## Create a plot of PCA scores for all data points
+pcaPlot <- plotScores(cleanerSpec, 
+           pca, 
+           
+           ## Which principal components to include. 99% of the time this will be the first 2 loadings, however if the scree plot indicates the 3rd to be important, it might be worth including.
+           pcs = c(1,2), 
+           
+           ##  Which type of ellipse should the analysis draw on this plot
+           ellipse = "rob", 
+           
+           ##  If symbols are easier to see for you than colours, set this to TRUE
+           use.sym = FALSE,
+           
+           ##  This value sets the tolerance for displaying individual labels on the plot.
+           tol = 0.05)
+
+## Add an appropriate title to the PCA plot
+pcaPlot <- pcaPlot + ggtitle("") + ylim(-0.05, 0.07) + theme_bw()
+
+##Display the completed PCA plot
+pcaPlot
+```
+
+```{r}
+
+```
