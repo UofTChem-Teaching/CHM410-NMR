@@ -25,7 +25,7 @@ library(tidyverse)
 
 # PCA Analysis of Honey
 
-This is the second half of the honey experiment - you should have already completed the first part and generated your own .csv file with the signal of your own sample. Place it in a new folder in the honey database named 'Sample'. In this part of the analysis, you will be running principal component analysis on the honey database we've developed and use it to tentatively identify your own honey. 
+This is the second half of the honey experiment - you should have already completed the first part and generated your own .csv file with the signal of your own sample. Place it in a new folder in the honey database named 'Sample', and name it 'sample_01.csv'. In this part of the analysis, you will be running principal component analysis on the honey database we've developed and use it to tentatively identify your own honey. 
 
 To start with, we will be loading the database (including your own file) using the following code. Make sure this document is in the same folder as your (unzipped) honey database.
 
