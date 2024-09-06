@@ -38,7 +38,7 @@ spec <- files2SpectraObject(
   recursive = TRUE,
   
   ##Specify the sample names of interest by inclusive criteria
-  gr.crit= c("Sample", "Other", "LocalHoney", "ManukaHoney", "MapleSyrup", "NaturoneyHoney", "NoNameHoney", "OtherHoney", "SugarSyrup"), 
+  gr.crit= c("Sample", "Other", "BillyBeeHoney", "KirklandHoney", "LocalHoney", "ManukaHoney", "MapleSyrup", "NaturoneyHoney", "NoNameHoney", "OtherHoney", "SugarSyrup"), 
   
   ##Automatically apply colours to the sample groups
   gr.cols = "Col12",  
@@ -77,7 +77,7 @@ options(chemoSpecGraphics = 'ggplot2')
 ## Plot the spectra in the Spectra object named spec
 spectralPlot <- plotSpectra(spec,
             
-            ##Which spectra should be plotted? Your spectra is likely number 1 or 62.
+            ##Which spectra should be plotted? Your spectra is likely number 1 or 91.
             which = c(1),
             
             ##If plotting multiple spectra, offset the vertical axis
